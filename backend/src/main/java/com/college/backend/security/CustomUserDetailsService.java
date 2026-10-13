@@ -1,12 +1,13 @@
-package com.college.backend.security;
 
-import com.college.backend.entity.User;
-import com.college.backend.repository.UserRepository;
+package com.college.backend.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import com.college.backend.entity.User;
+import com.college.backend.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -21,10 +22,18 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "User not found with email: " + email));
+        User user = userRepository.findByEmailIgnoreCase(
+                email.trim().toLowerCase()
+        ).orElseThrow(() ->
+                new UsernameNotFoundException(
+                        "User not found with email: " + email
+                )
+        );
 
-        return user;
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .authorities("ROLE_" + user.getRole().name())
+                .build();
     }
 }
